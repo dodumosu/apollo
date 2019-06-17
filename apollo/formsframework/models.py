@@ -411,7 +411,10 @@ class FormBuilderSerializer(object):
                 if f['max']:
                     field.max_value = f['max']
             else:
-                field.options = {k: v for v, k in enumerate(f['options'], 1)}
+                field.options = {
+                    k.replace('.', u'\uFF0E').replace('$', u'\uFF04'): v
+                    for v, k in enumerate(f['options'], 1)
+                }
 
                 if f['component'] == 'checkbox':
                     field.allows_multiple_values = True

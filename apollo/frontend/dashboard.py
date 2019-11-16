@@ -25,7 +25,7 @@ def get_coverage(query, form, group=None, location_type=None):
         return _get_group_coverage(query, form, group, location_type)
 
 
-def _get_coverage_results(query, depth):
+def _get_coverage_results(query, depth, location_set_id):
     ancestor_location = aliased(Location)
     location_closure = aliased(LocationPath)
 
@@ -36,7 +36,8 @@ def _get_coverage_results(query, depth):
         ancestor_location,
         ancestor_location.id == location_closure.ancestor_id
     ).filter(
-        location_closure.depth == depth
+        location_closure.depth == depth,
+        ancestor_location.location_set_id == location_set_id
     ).with_entities(
         ancestor_location,
         func.count(Submission.id)
@@ -108,7 +109,8 @@ def _get_group_coverage(query, form, group, location_type):
     dataset = defaultdict(dict)
 
     for loc_id, loc_name, count in _get_coverage_results(
-            complete_query, depth_info.depth):
+            complete_query, depth_info.depth,
+            location_type.location_set_id):
         dataset[loc_name].update({
             'Complete': count,
             'id': loc_id,
@@ -116,7 +118,8 @@ def _get_group_coverage(query, form, group, location_type):
         })
 
     for loc_id, loc_name, count in _get_coverage_results(
-            conflict_query, depth_info.depth):
+            conflict_query, depth_info.depth,
+            location_type.location_set_id):
         dataset[loc_name].update({
             'Conflict': count,
             'id': loc_id,
@@ -124,7 +127,8 @@ def _get_group_coverage(query, form, group, location_type):
         })
 
     for loc_id, loc_name, count in _get_coverage_results(
-            missing_query, depth_info.depth):
+            missing_query, depth_info.depth,
+            location_type.location_set_id):
         dataset[loc_name].update({
             'Missing': count,
             'id': loc_id,
@@ -132,7 +136,8 @@ def _get_group_coverage(query, form, group, location_type):
         })
 
     for loc_id, loc_name, count in _get_coverage_results(
-            partial_query, depth_info.depth):
+            partial_query, depth_info.depth,
+            location_type.location_set_id):
         dataset[loc_name].update({
             'Partial': count,
             'id': loc_id,
@@ -140,7 +145,8 @@ def _get_group_coverage(query, form, group, location_type):
         })
 
     for loc_id, loc_name, count in _get_coverage_results(
-            offline_query, depth_info.depth):
+            offline_query, depth_info.depth,
+            location_type.location_set_id):
         dataset[loc_name].update({
             'Offline': count,
             'id': loc_id,

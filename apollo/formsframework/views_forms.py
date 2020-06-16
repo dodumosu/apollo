@@ -5,10 +5,11 @@ from io import BytesIO
 from arpeggio import NoMatch
 from arpeggio.cleanpeg import ParserPEG
 from flask import (
-    abort, Blueprint, flash, g, redirect, request, send_file, session, url_for)
+    abort, Blueprint, flash, g, jsonify, redirect, request, send_file, session, url_for)
 from flask_babelex import lazy_gettext as _
 import json
 from flask_security import current_user
+from sqlalchemy.orm.exc import NoResultFound
 from slugify import slugify
 
 from apollo import core, models
@@ -44,9 +45,24 @@ def checklist_init():
     form = make_checklist_init_form(g.event)
 
     if form.validate_on_submit():
-        flash_category = 'info'
-        flash_message = _('Checklists are being created for the Event, Form, '
-                          'Role and Location Type you selected')
+        # form hasn't been deleted?
+        try:
+            questionnaire_form = models.Form.query.filter_by(
+                id=form.data['form']).one()
+        except NoResultFound:
+            flash_category = 'danger'
+            flash_message = _('Checklist does not exist')
+
+            flash(str(flash_message), flash_category)
+            return redirect(url_for('formsview.index'))
+
+        tags = questionnaire_form.tags
+        if not tags:
+            flash_category = 'danger'
+            flash_message = _('Checklist has no questions')
+
+            flash(str(flash_message), flash_category)
+            return redirect(url_for('formsview.index'))
 
         channel = session.get('_id')
         task_kwargs = {
@@ -57,6 +73,9 @@ def checklist_init():
             'channel': channel
         }
 
+        flash_category = 'info'
+        flash_message = _('Checklists are being created for the Event, Form, '
+                          'Role and Location Type you selected')
         init_submissions.apply_async(kwargs=task_kwargs)
     else:
         flash_category = 'danger'
@@ -118,9 +137,13 @@ def form_builder(view, id):
         data = request.get_json()
 
         if data:
-            FormBuilderSerializer.deserialize(form, data)
+            if FormBuilderSerializer.deserialize(form, data):
+                return jsonify(status='ok')
+            else:
+                return jsonify(
+                    status='error', message='Duplicate question codes used')
 
-        return ''
+        return jsonify(status='error', message='No data sent')
 
 
 def new_form(view):

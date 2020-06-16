@@ -360,6 +360,8 @@ class FormBuilderSerializer(object):
 
     @classmethod
     def deserialize(cls, form, data):
+        tags_set = set()
+        tags_list = []
         groups = []
         current_group = None
 
@@ -390,6 +392,8 @@ class FormBuilderSerializer(object):
                 'tag': f['label'],
                 'description': f['description']
             }
+            tags_set.add(f['label'])
+            tags_list.append(f['label'])
 
             if f['analysis']:
                 field['analysis_type'] = f['analysis']
@@ -441,4 +445,9 @@ class FormBuilderSerializer(object):
                 delattr(form, '_schema_cache')
 
         form.data = {'groups': groups}
-        form.save()
+
+        if len(tags_list) == len(tags_set):
+            form.save()
+            return True
+        else:
+            return False

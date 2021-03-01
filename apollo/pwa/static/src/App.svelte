@@ -48,7 +48,7 @@
     };
 
     const onLogout = () => {
-        apiClient.logout(getCookie('crsf_access_token'))
+        apiClient.logout(getCookie('csrf_access_token'))
             .then(() => {
                 participant = null;
                 forms = [];

@@ -104,7 +104,8 @@
     onMount(async () => {
         participant = await localDatabase.getParticipant();
         if (participant !== null) {
-            forms = await localDatabase.getForms(participant.participant_id);
+            dbForms = await localDatabase.getForms(participant.participant_id);
+            forms = dbForms.sort(formSorter);
             submissions = await localDatabase.getSubmissions(participant.participant_id);
         }
     });

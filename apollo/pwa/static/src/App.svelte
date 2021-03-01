@@ -100,15 +100,17 @@
             });
     };
 
-    // ----- -----
-    onMount(async () => {
+    const onAppMount = async () => {
         participant = await localDatabase.getParticipant();
         if (participant !== null) {
-            dbForms = await localDatabase.getForms(participant.participant_id);
+            let dbForms = await localDatabase.getForms(participant.participant_id);
             forms = dbForms.sort(formSorter);
             submissions = await localDatabase.getSubmissions(participant.participant_id);
         }
-    });
+    };
+
+
+    onMount(onAppMount);
 </script>
 
 <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top-mb-6">

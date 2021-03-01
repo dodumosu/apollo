@@ -20,7 +20,7 @@
     };
 </script>
 
-<div class="row">
+<div class="row mt-3">
     <div class="col">
         <div class="card shadow-sm">
             <div class="card-body">

@@ -1,12 +1,13 @@
 <script>
     import gettext from 'gettext.js';
     import Notiflix from 'notiflix';
-    import { onMount } from 'svelte/internal';
+    import { onDestroy, onMount } from 'svelte/internal';
     import { getCookie } from 'tiny-cookie';
 
     import APIClient from './client';
     import FormList from './components/FormList.svelte';
     import LoginForm from './components/LoginForm.svelte';
+    import SubmissionEditor from './components/SubmissionEditor.svelte';
     import UserInfo from './components/UserInfo.svelte';
     import LocalDatabase from './database';
 
@@ -41,10 +42,52 @@
         ).sort(formSorter); 
     };
 
+    const subsetByForm = (submissions, form) => submissions.filter(sub => sub.form === form.id);
+
+    const newSubmission = async (form) => {
+        if (form.form_type === 'CHECKLIST') {
+            let subset = subsetByForm(submissions, form);
+            if (subset.length > 0)
+                return subset[0];
+        };
+
+        let submission = {
+            created: new Date(),
+            form: form.id,
+            images: {},
+            participant_id: participant.participant_id,
+            posted: null,
+            type: form.form_type,
+            updated: null
+        };
+        submission.data = form.data.groups.reduce((acc, group) => {
+            group.fields.forEach(field => {
+                if (field.type === 'multiselect')
+                    acc[field.tag] = [];
+            });
+
+            return acc;
+        }, {});
+
+        localDatabase.saveSubmission(submission);
+
+        submissions = [...submissions, submission];
+        return submission;
+    };
+
+    const createChecklists = (forms) => {
+        forms.filter(
+            form => form.form_type === 'CHECKLIST'
+        ).forEach(form => newSubmission(form));
+    };
+
     // ----- PROPS -----
     export let endpoints;
 
     let forms = [], participant = null, submissions = [];
+    let currentForm = null, currentSubmission = null;
+    const backgroundSyncAvailable = 'SyncManager' in window;
+    const periodicSyncAvailable = 'periodicSync' in ServiceWorkerRegistration;
     const apiClient = new APIClient(endpoints);
     const i18n = new gettext();
     const localDatabase = new LocalDatabase();
@@ -66,6 +109,7 @@
                 try {
                     forms = await refreshForms(participant);
                     localDatabase.saveForms(forms);
+                    createChecklists(forms);
                 } catch (error) {
                     console.error(error);
                     Notiflix.Report.Failure(
@@ -109,8 +153,16 @@
         }
     };
 
+    const onAppDestroy = () => {};
+
+    const onFormAction = async event => {
+        currentForm = event.detail.form;
+        currentSubmission = await newSubmission(currentForm);
+    };
+
 
     onMount(onAppMount);
+    onDestroy(onAppDestroy);
 </script>
 
 <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top-mb-6">
@@ -121,9 +173,11 @@
         <div class="col-sm-10 offset-sm-1 mt3">
             {#if participant === null}
                 <LoginForm {i18n} on:authenticate={onAuthenticate}/>
-            {:else}
+            {:else if currentForm === null}
                 <UserInfo {i18n} {participant} pendingSubmissions={0} on:logout={onLogout}/>
-                <FormList {i18n} {forms}/>
+                <FormList {i18n} {forms} on:form-action={onFormAction}/>
+            {:else if currentForm !== null && currentSubmission !== null}
+                <SubmissionEditor {i18n} form={currentForm} submission={currentSubmission}/>
             {/if}
         </div>
     </div>

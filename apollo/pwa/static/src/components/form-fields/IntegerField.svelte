@@ -1,5 +1,5 @@
 <script>
-    export let field, locked, value;
+    export let field, locked, value = null;
 </script>
 
 <div class="mb-3">

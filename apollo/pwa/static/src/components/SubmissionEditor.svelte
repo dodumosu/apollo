@@ -1,4 +1,6 @@
 <script>
+    import { createEventDispatcher } from 'svelte';
+
     import CommentField from './form-fields/CommentField.svelte';
     import ImageField from './form-fields/ImageField.svelte';
     import IntegerField from './form-fields/IntegerField.svelte';
@@ -9,6 +11,12 @@
 
     export let form, i18n, submission;
     let locked = form.form_type === 'INCIDENT' && submission.posted;
+
+    const dispatch = createEventDispatcher();
+
+    const buttonHandler = () => {
+        dispatch('submission-updated', {submission: submission});
+    };
 </script>
 
 <div class="row">
@@ -30,30 +38,30 @@
                             <legend>{ group.name }</legend>
                             {#each group.fields as field}
                                 {#if field.type === 'integer'}
-                                    <IntegerField {field} {locked} value={submission.data[field.tag]}/>
+                                    <IntegerField {field} {locked} bind:value={submission.data[field.tag]}/>
                                 {:else if field.type === 'select'}
-                                    <SelectField {field} {locked} value={submission.data[field.tag]}/>
+                                    <SelectField {field} {locked} bind:value={submission.data[field.tag]}/>
                                 {:else if field.type === 'multiselect'}
-                                    <MultiSelectField {field} {locked} value={submission.data[field.tag]}/>
+                                    <MultiSelectField {field} {locked} bind:value={submission.data[field.tag]}/>
                                 {:else if field.type === 'string'}
-                                    <StringField {field} {locked} value={submission.data[field.tag]}/>
+                                    <StringField {field} {locked} bind:value={submission.data[field.tag]}/>
                                 {:else if field.type === 'comment'}
-                                    <CommentField {field} {locked} value={submission.data[field.tag]}/>
+                                    <CommentField {field} {locked} bind:value={submission.data[field.tag]}/>
                                 {:else if field.type === 'image'}
-                                    <ImageField {field} {locked} value={submission.data[field.tag]}/>
+                                    <ImageField {field} {locked} bind:value={submission.data[field.tag]}/>
                                 {/if}
                             {/each}
                         </fieldset>
                     {/each}
                     {#if 'geolocation' in navigator}
-                        <LocationField/>
+                        <LocationField {i18n} bind:location={submission.location} {locked} />
                     {/if}
                 </form>
             </div>
             <div class="card-footer">
-                <button class="btn btn-outline-dark">{ i18n.gettext('Back') }</button>
-                <button class="btn btn-outline-dark">{ i18n.gettext('Cancel') }</button>
-                <button class="btn btn-outline-dark">{ i18n.gettext('Submit') }</button>
+                <button class="btn btn-outline-dark" on:click={buttonHandler}>{ i18n.gettext('Back') }</button>
+                <button class="btn btn-outline-dark" on:click={buttonHandler}>{ i18n.gettext('Cancel') }</button>
+                <button class="btn btn-outline-dark" on:click={buttonHandler}>{ i18n.gettext('Submit') }</button>
             </div>
         </div>
     </div>

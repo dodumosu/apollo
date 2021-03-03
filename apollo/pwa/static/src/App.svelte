@@ -55,6 +55,7 @@
             created: new Date(),
             form: form.id,
             images: {},
+            location: null,
             participant_id: participant.participant_id,
             posted: null,
             type: form.form_type,
@@ -135,6 +136,12 @@
         }
     };
 
+    const onSubmissionUpdated = (event) => {
+        currentForm = null;
+        currentSubmission = null;
+        console.log(event.detail.submission);
+    };
+
     const onLogout = () => {
         apiClient.logout(getCookie('csrf_access_token'))
             .then(() => {
@@ -177,7 +184,7 @@
                 <UserInfo {i18n} {participant} pendingSubmissions={0} on:logout={onLogout}/>
                 <FormList {i18n} {forms} on:form-action={onFormAction}/>
             {:else if currentForm !== null && currentSubmission !== null}
-                <SubmissionEditor {i18n} form={currentForm} submission={currentSubmission}/>
+                <SubmissionEditor {i18n} form={currentForm} submission={currentSubmission} on:submission-updated={onSubmissionUpdated} />
             {/if}
         </div>
     </div>

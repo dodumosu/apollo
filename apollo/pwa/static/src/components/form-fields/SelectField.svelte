@@ -1,5 +1,5 @@
 <script>
-    export let field, locked, value;
+    export let field, locked, value = null;
 
     const optionSorter = (options_a, options_b) => options_b[0] - options_a[0];
     const options = Array.from(Object.entries(field.options)).sort(optionSorter);

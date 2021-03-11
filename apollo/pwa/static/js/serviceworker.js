@@ -19,6 +19,7 @@ const CACHED_URLS = [
     '/pwa/static/vendor/luxon/luxon.min.js',
     '/pwa/static/vendor/notiflix/notiflix-2.7.0.min.css',
     '/pwa/static/vendor/notiflix/notiflix-2.7.0.min.js',
+    '/pwa/static/vendor/sentry/bundle.min.js',
     '/pwa/static/vendor/vue/vue.min.js',
 ];
 

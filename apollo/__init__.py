@@ -144,7 +144,7 @@ def create_app(settings_override=None, register_security_blueprint=True):
             "*.googletagmanager.com " + \
             "cdn.heapanalytics.com heapanalytics.com " + \
             "'unsafe-inline' 'unsafe-eval' data:; img-src * data: blob:; " + \
-            f"connect-src {sentry_host} "
+            f"connect-src 'self' {sentry_host} "
         return response
 
     # automatic token refresh

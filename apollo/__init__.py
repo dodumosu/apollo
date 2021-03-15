@@ -143,7 +143,7 @@ def create_app(settings_override=None, register_security_blueprint=True):
             "*.googlecode.com *.google-analytics.com fonts.gstatic.com fonts.googleapis.com " + \
             "*.googletagmanager.com " + \
             "cdn.heapanalytics.com heapanalytics.com " + \
-            "'unsafe-inline' 'unsafe-eval' data:; img-src * data: blob:" + \
+            "'unsafe-inline' 'unsafe-eval' data:; img-src * data: blob:; " + \
             f"connect-src {sentry_host} "
         return response
 

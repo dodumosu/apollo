@@ -6,6 +6,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 
 import magic
 import pytz
+from PIL import Image
 from flask import flash, g, send_file, redirect, request, session
 from flask_admin import (
     form, BaseView, expose)
@@ -47,6 +48,22 @@ utc_time_zone = pytz.utc
 excluded_perm_actions = ['view_forms', 'access_event']
 
 DATETIME_FORMAT_SPEC = '%Y-%m-%d %H:%M:%S %Z'
+
+
+def resize_logo(pil_image: Image):
+    background_color = (255, 255, 255, 0)
+
+    width, height = pil_image.size
+    if width == height:
+        return pil_image
+    elif width > height:
+        result = Image.new('RGBA', (width, width), background_color)
+        result.paste(pil_image, (0, (width - height) // 2))
+        return result
+    else:
+        result = Image.new('RBBA', (height, height), background_color)
+        result.paste(pil_image, ((height - width) // 2, 0))
+        return result
 
 
 class MultipleSelect2Field(fields.Select2Field):
@@ -224,7 +241,12 @@ class DeploymentAdminView(BaseAdminView):
             if not mimetype.startswith('image'):
                 return
 
-            encoded = base64.b64encode(logo_data).decode('utf-8')
+            resized_logo = resize_logo(
+                Image.open(BytesIO(logo_data))).resize((30, 30), Image.LANCZOS)
+            with BytesIO() as output:
+                resized_logo.save(output, format='PNG')
+                contents = output.getvalue()
+            encoded = base64.b64encode(contents).decode('utf-8')
             model.logo = f'data:{mimetype};base64,{encoded}'
 
     def get_query(self):

@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
+import base64
 from datetime import datetime
+from io import BytesIO
+from zipfile import ZipFile, ZIP_DEFLATED
+
+import magic
+import pytz
 from flask import flash, g, send_file, redirect, request, session
 from flask_admin import (
     form, BaseView, expose)
@@ -13,12 +19,10 @@ from flask_admin.model.template import macro
 from flask_babelex import lazy_gettext as _
 from flask_security import current_user, login_required, roles_required
 from flask_security.utils import hash_password, url_for_security
-from io import BytesIO
 from jinja2 import contextfunction
-import pytz
 from slugify import slugify
-from wtforms import PasswordField, SelectField, SelectMultipleField, validators
-from zipfile import ZipFile, ZIP_DEFLATED
+from wtforms import (
+    FileField, PasswordField, SelectField, SelectMultipleField, validators)
 
 from apollo.core import admin, db
 from apollo import models, services, settings
@@ -179,7 +183,7 @@ class DeploymentAdminView(BaseAdminView):
                 'name', 'allow_observer_submission_edit',
                 'dashboard_full_locations',
                 'enable_partial_response_for_messages', 'hostnames',
-                'primary_locale', 'other_locales'
+                'primary_locale', 'other_locales', 'logo'
             ),
             _('Deployment')
         )
@@ -205,6 +209,24 @@ class DeploymentAdminView(BaseAdminView):
             model.primary_locale = None
         model.other_locales = [loc for loc in model.other_locales if loc != '']
 
+        logo_data = request.files[form.logo.name].read()
+        if len(logo_data) == 0:
+            # no logo was uploaded
+            db_model = models.Deployment.query.filter(
+                models.Deployment.id == model.id
+            ).first()
+            if db_model is not None:
+                model.logo = db_model.logo
+        else:
+            mimetype = magic.from_buffer(logo_data, mime=True)
+
+            # don't do anything if there isn't a valid image
+            if not mimetype.startswith('image'):
+                return
+
+            encoded = base64.b64encode(logo_data).decode('utf-8')
+            model.logo = f'data:{mimetype};base64,{encoded}'
+
     def get_query(self):
         return models.Deployment.query.filter_by(
             id=current_user.deployment.id)
@@ -227,6 +249,9 @@ class DeploymentAdminView(BaseAdminView):
             _('Other Languages'), choices=LANGUAGE_CHOICES,
             validators=[validators.optional()],
             description=_('Specifies other languages that will be supported for data uploads.'))  # noqa
+
+        # logo support
+        form_class.logo = FileField(_('Logo'))
 
         return form_class
 

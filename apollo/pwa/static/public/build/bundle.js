@@ -6288,7 +6288,7 @@ var app = (function () {
     const { Object: Object_1, console: console_1 } = globals;
     const file = "src/App.svelte";
 
-    // (81:6) {:else}
+    // (89:6) {:else}
     function create_else_block(ctx) {
     	let welcome;
     	let current;
@@ -6335,14 +6335,14 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(81:6) {:else}",
+    		source: "(89:6) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (79:6) {#if participant === null}
+    // (87:6) {#if participant === null}
     function create_if_block(ctx) {
     	let loginform;
     	let current;
@@ -6384,7 +6384,7 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(79:6) {#if participant === null}",
+    		source: "(87:6) {#if participant === null}",
     		ctx
     	});
 
@@ -6426,11 +6426,11 @@ var app = (function () {
     			div0 = element("div");
     			if_block.c();
     			attr_dev(div0, "class", "col-sm-10 offset-sm-1 mt-3");
-    			add_location(div0, file, 77, 4, 2167);
+    			add_location(div0, file, 85, 4, 2357);
     			attr_dev(div1, "class", "row h-75 align-items-center");
-    			add_location(div1, file, 76, 2, 2121);
+    			add_location(div1, file, 84, 2, 2311);
     			attr_dev(main, "class", "container h-100");
-    			add_location(main, file, 75, 0, 2088);
+    			add_location(main, file, 83, 0, 2278);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -6524,11 +6524,15 @@ var app = (function () {
     	};
 
     	let allowLocationAccess = false;
-    	let participant = null;
+    	let participant = null, forms = null;
 
     	const onAppMount = () => {
     		appDatabase.getParticipant().then(dbParticipant => {
     			$$invalidate(0, participant = dbParticipant);
+
+    			if (participant !== null) appDatabase.getForms(participant.participant_id).then(dbForms => {
+    				forms = dbForms;
+    			});
     		}).catch(error => console.error(error));
     	};
 
@@ -6588,6 +6592,7 @@ var app = (function () {
     		browserCapabilities,
     		allowLocationAccess,
     		participant,
+    		forms,
     		onAppMount,
     		retrieveForms,
     		authSuccess,
@@ -6598,6 +6603,7 @@ var app = (function () {
     	$$self.$inject_state = $$props => {
     		if ("allowLocationAccess" in $$props) allowLocationAccess = $$props.allowLocationAccess;
     		if ("participant" in $$props) $$invalidate(0, participant = $$props.participant);
+    		if ("forms" in $$props) forms = $$props.forms;
     	};
 
     	if ($$props && "$$inject" in $$props) {

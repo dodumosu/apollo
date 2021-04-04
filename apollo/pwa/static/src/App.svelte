@@ -27,11 +27,19 @@
   };
 
   let allowLocationAccess = false;
-  let participant = null;
+  let participant = null, forms = null;
 
   const onAppMount = () => {
     appDatabase.getParticipant()
-      .then((dbParticipant) => { participant = dbParticipant })
+      .then(dbParticipant => {
+        participant = dbParticipant;
+
+        if (participant !== null)
+        appDatabase.getForms(participant.participant_id)
+          .then(dbForms => {
+            forms = dbForms;
+          })
+      })
       .catch(error => console.error(error));
   };
 

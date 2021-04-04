@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from http import HTTPStatus
-from itertools import groupby
-from operator import itemgetter
+from itertools import chain
 
 from flask import g, jsonify, request
 from flask_apispec import MethodResource, marshal_with, use_kwargs
@@ -238,14 +237,14 @@ def _get_form_data(participant):
         Form.id, Submission.serial_no
     ).order_by(Form.id, Submission.serial_no)
 
-    all_forms = checklist_forms.all() + incident_forms.all() + \
-        survey_forms.all()
+    all_forms = []
+    all_forms.extend(checklist_forms)
+    all_forms.extend(incident_forms)
+    all_forms.extend(survey_forms)
 
-    serials = {
-        form_id: sorted(group[1] for group in groups)
-        for form_id, groups in groupby(
-            form_ids_with_serials, key=itemgetter(0))
-    }
+    serials = [{
+        'form_id': pair[0], 'serial': pair[1]
+    } for pair in form_ids_with_serials]
 
     return all_forms, serials
 
@@ -267,7 +266,7 @@ def get_forms():
 
     forms, serials = _get_form_data(participant)
 
-    form_data = FormSchema(many=True).dump(forms)
+    form_data = FormSchema(many=True).dump(forms).data
 
     result = {
         'data': {

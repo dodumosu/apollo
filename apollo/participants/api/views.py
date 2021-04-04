@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from http import HTTPStatus
-from itertools import chain
 
 from flask import g, jsonify, request
 from flask_apispec import MethodResource, marshal_with, use_kwargs

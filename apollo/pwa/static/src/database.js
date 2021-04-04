@@ -44,6 +44,12 @@ class ApolloDatabase extends Dexie {
     });
   }
 
+  saveSerials(serials) {
+    return this.transaction('rw', this.serials, () => {
+      this.serials.bulkPut(serials);
+    });
+  }
+
   saveParticipant(participant) {
     return this.transaction('rw', this.participants, () => {
       this.participants.put(participant);

@@ -18,7 +18,7 @@ class APIClient {
 
   getFormData() {
     return axios({
-      url: this.endpoints.formList,
+      url: this.endpoints.formData,
       withCredentials: true
     })
   }

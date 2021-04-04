@@ -20,7 +20,10 @@
   const apiClient = new APIClient(endpoints);
   const appDatabase = new ApolloDatabase();
   const browserCapabilities = {
-    canGetLocation: 'geoLocation' in navigator
+    canDoBackgroundSync: 'SyncManager' in window,
+    canDoPeriodicSync: 'periodicSync' in ServiceWorkerRegistration,
+    canGetLocation: 'geolocation' in navigator,
+    canUsePermissions: 'permissions' in navigator
   };
 
   let allowLocationAccess = false;
@@ -32,13 +35,18 @@
       .catch(error => console.error(error));
   };
 
-  const loadForms = () => {
+  const retrieveForms = () => {
     apiClient.getFormData()
       .then((response) => {
         let forms = response.data.data.forms;
-        let serialInfo = response.data.data.serials;
+        let serials = response.data.data.serials
+          .map(si => Object.assign({participant_id: participant.participant_id}, si));
 
-        appDatabase.saveForms(forms);
+        if (forms.length > 0)
+          appDatabase.saveForms(forms);
+
+        if (serials.length > 0)
+          appDatabase.saveSerials(serials);
       });
   };
 
@@ -47,6 +55,7 @@
     participant.lastLogin = new Date();
 
     appDatabase.saveParticipant(participant);
+    retrieveForms();
   };
 
   const logout = () => {

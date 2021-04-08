@@ -1,5 +1,7 @@
 import Dexie from 'dexie';
 
+import { formSorter } from './utils';
+
 class ApolloDatabase extends Dexie {
   constructor() {
     super('apollo');
@@ -7,11 +9,8 @@ class ApolloDatabase extends Dexie {
     this.version(1).stores({
       forms: 'id, participant_id',
       participants: 'participant_id, lastLogin',
-      submissions: '++id, participant_id, [id+participant_id], form, posted, updated'
-    });
-
-    this.version(2).stores({
-      serials: 'form, participant_id, [form+participant_id]'
+      submissions: '++id, participant_id, [id+participant_id], form, posted, updated',
+      serials: '[form+participant_id+serial], [form+participant_id], form, participant_id, serial'
     });
 
     this.forms = this.table('forms');
@@ -21,7 +20,7 @@ class ApolloDatabase extends Dexie {
   }
 
   getForms(participant_id) {
-    return this.forms.where({participant_id: participant_id}).toArray();
+    return this.forms.where({participant_id: participant_id}).toArray().then(forms => forms.sort(formSorter));
   }
 
   async getParticipant() {

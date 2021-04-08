@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte/internal';
-  export let i18n, participant, pendingSubmissions = 0;
+  export let i18n, participant, unsentSubmissions = 0;
 
   let dispatch = createEventDispatcher();
   const greeting = () => {
@@ -46,7 +46,7 @@
             </div>
           </div>
         </div>
-        {#if pendingSubmissions > 0}
+        {#if unsentSubmissions > 0}
         <div class="row">
           <div class="col">
             <div class="alert alert-info"></div>

@@ -5,6 +5,7 @@
 
   import APIClient from './client';
   import ApolloDatabase from './database';
+  import FormList from './components/FormList.svelte';
   import LoginForm from './components/LoginForm.svelte';
   import Navbar from './components/Navbar.svelte';
   import Welcome from './components/Welcome.svelte';
@@ -27,18 +28,12 @@
   };
 
   let allowLocationAccess = false;
-  let participant = null, forms = null;
+  let currentForm = null, participant = null;
 
   const onAppMount = () => {
     appDatabase.getParticipant()
       .then(dbParticipant => {
         participant = dbParticipant;
-
-        if (participant !== null)
-        appDatabase.getForms(participant.participant_id)
-          .then(dbForms => {
-            forms = dbForms;
-          })
       })
       .catch(error => console.error(error));
   };
@@ -46,7 +41,7 @@
   const retrieveForms = () => {
     apiClient.getFormData()
       .then((response) => {
-        let forms = response.data.data.forms;
+        let forms = response.data.data.forms.map(form => Object.assign(form, {participant_id: participant.participant_id}));
         let serials = response.data.data.serials
           .map(si => Object.assign({participant_id: participant.participant_id}, si));
 
@@ -88,6 +83,9 @@
       <LoginForm {apiClient} {i18n} on:authenticated={authSuccess}/>
       {:else}
       <Welcome {i18n} {participant} on:logged-out={logout} on:location-access-toggled={locationAccessToggled}/>
+      {#if currentForm === null}
+        <FormList db={appDatabase} {i18n} {participant}/>
+      {/if}
       {/if}
     </div>
   </div>

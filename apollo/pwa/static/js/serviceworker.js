@@ -1,4 +1,4 @@
-const CACHE_NAME = 'apollo-cache-static-v3';
+const CACHE_NAME = 'apollo-cache-static-svelte-v1';
 
 const CACHED_URLS = [
     '/pwa/',
@@ -8,18 +8,11 @@ const CACHED_URLS = [
     '/pwa/static/img/icons-96.png',
     '/pwa/static/img/icons-192.png',
     '/pwa/static/js/app.js',
-    '/pwa/static/js/client.js',
-    '/pwa/static/js/diff.js',
-    '/pwa/static/vendor/animate.css/animate.min.css',
+    '/pwa/static/public/build/bundle.css',
+    '/pwa/static/public/build/bundle.js',
     '/pwa/static/vendor/bootstrap/css/bootstrap.min.css',
     '/pwa/static/vendor/bootstrap/css/bootstrap.rtl.min.css',
     '/pwa/static/vendor/bootstrap/js/bootstrap.min.js',
-    '/pwa/static/vendor/dexie/dexie.min.js',
-    '/pwa/static/vendor/image-blob-reduce/image-blob-reduce.min.js',
-    '/pwa/static/vendor/luxon/luxon.min.js',
-    '/pwa/static/vendor/notiflix/notiflix-2.7.0.min.css',
-    '/pwa/static/vendor/notiflix/notiflix-2.7.0.min.js',
-    '/pwa/static/vendor/vue/vue.min.js',
 ];
 
 self.addEventListener('install', (event) => {

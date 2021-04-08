@@ -21,12 +21,6 @@ window.isUpdateAvailable = new Promise((resolve, reject) => {
                 };
             })
             .catch(error => console.error('service worker registration failed:', error));
-
-        if ('SyncManager' in window)
-            console.log('Background sync supported');
-        else
-            console.log('Background sync not supported');
-
     } else {
         console.error('Can\'t use service workers');
     }

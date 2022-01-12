@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 from http import HTTPStatus
 
 from flask import g, jsonify, request
@@ -24,6 +25,8 @@ from apollo.participants.models import (
     ParticipantFullNameTranslations, ParticipantLastNameTranslations,
     ParticipantOtherNamesTranslations)
 from apollo.submissions.models import Submission
+
+email_regex = r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w+$'
 
 
 @marshal_with(ParticipantSchema)
@@ -137,6 +140,12 @@ def login():
     request_data = request.json
     participant_id = request_data.get('participant_id')
     password = request_data.get('password')
+    query_params = [Participant.password == password]
+
+    if re.search(email_regex, participant_id):
+        query_params.append(Participant.email == participant_id)
+    else:
+        query_params.append(Participant.participant_id == participant_id)
 
     current_events = Event.overlapping_events(Event.default())
     participant = current_events.join(
@@ -144,10 +153,7 @@ def login():
         Participant.participant_set_id == Event.participant_set_id
     ).with_entities(
         Participant
-    ).filter(
-        Participant.participant_id == participant_id,
-        Participant.password == password
-    ).first()
+    ).filter(*query_params).first()
 
     if participant is None:
         response = {'message': gettext('Login failed'), 'status': 'error'}

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-from itertools import chain
 import re
 
-from sqlalchemy import func
+from sqlalchemy import UniqueConstraint, func
 from flask_babelex import lazy_gettext as _
 from sqlalchemy.dialects.postgresql import JSONB
 import sqlalchemy_utils
@@ -177,6 +176,9 @@ class Participant(BaseModel):
     )
 
     __tablename__ = 'participant'
+    __table_args__ = (
+        UniqueConstraint('participant_set_id', 'email'),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     full_name_translations = db.Column(JSONB)
@@ -334,7 +336,8 @@ class PhoneContact(BaseModel):
         onupdate=utils.current_timestamp)
     verified = db.Column(db.Boolean, default=False)
 
-    participant = db.relationship('Participant', back_populates='phone_contacts')
+    participant = db.relationship(
+        'Participant', back_populates='phone_contacts')
 
     def touch(self):
         self.updated = utils.current_timestamp()

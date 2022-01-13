@@ -177,7 +177,10 @@ class Participant(BaseModel):
 
     __tablename__ = 'participant'
     __table_args__ = (
-        UniqueConstraint('participant_set_id', 'email'),
+        UniqueConstraint(
+            'participant_set_id', 'email',
+            name='participant_participant_set_id_email_key'
+        ),
     )
 
     id = db.Column(db.Integer, primary_key=True)

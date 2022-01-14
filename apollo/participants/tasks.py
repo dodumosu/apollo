@@ -5,10 +5,12 @@ import os
 import random
 import string
 
+from email_validator import validate_email
 from flask import render_template_string
 from flask_babelex import gettext
 from flask_babelex import lazy_gettext as _
 import pandas as pd
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from apollo import helpers, services
@@ -48,6 +50,17 @@ Record for participant ID {{ pid }} raised warning: {{ msg }}
 
 def _is_valid(item):
     return not pd.isnull(item) and item
+
+
+def _get_clean_email(email):
+    if pd.isnull(email):
+        return None
+
+    try:
+        validated_email = validate_email(email, check_deliverability=False)
+    except Exception:
+        return None
+    return validated_email.email
 
 
 def create_partner(name, participant_set):
@@ -334,8 +347,7 @@ def update_participants(dataframe, header_map, participant_set, task):
                 participant.gender = APPLICABLE_GENDERS[0]
 
         if EMAIL_COL:
-            participant.email = record[EMAIL_COL] \
-                if _is_valid(record[EMAIL_COL]) else None
+            participant.email = _get_clean_email(record[EMAIL_COL])
 
         if PASSWORD_COL:
             participant.password = record[PASSWORD_COL] \
@@ -345,14 +357,26 @@ def update_participants(dataframe, header_map, participant_set, task):
 
         # save if this is a new participant - we need an id for lookup
         if not participant.id:
-            participant.save()
+            try:
+                db.session.add(participant)
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+                error_records += 1
+                continue
 
         if phone_columns:
             # If this is an update for the participant, we should clear
             # the current list of phone numbers and then recreate them
             if participant.id:
-                participant.phone_contacts = []
-                db.session.commit()
+                with db.session.no_autoflush:
+                    participant.phone_contacts = []
+                    try:
+                        db.session.commit()
+                    except IntegrityError:
+                        db.session.rollback()
+                        error_records += 1
+                        continue
 
             # check if the phone number is on record
             # import phone numbers in reverse order so the first is the latest
@@ -367,9 +391,10 @@ def update_participants(dataframe, header_map, participant_set, task):
 
                 phone = services.phone_contacts.lookup(mobile_num, participant)
                 if not phone:
-                    phone = services.phone_contacts.create(
+                    phone = services.phone_contacts.new(
                         number=mobile_num, participant_id=participant.id,
                         verified=True)
+                    db.session.add(phone)
 
         if sample_columns:
             for column in sample_columns:
@@ -400,7 +425,13 @@ def update_participants(dataframe, header_map, participant_set, task):
                     extra_data[field_name] = value
 
         # finally done with first pass
-        participant.save()
+        try:
+            db.session.add(participant)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            error_records += 1
+            continue
         processed_records += 1
 
         # if we have extra data, update the participant

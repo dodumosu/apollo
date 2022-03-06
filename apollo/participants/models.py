@@ -38,6 +38,7 @@ class ParticipantSet(BaseModel):
     gender_hidden = db.Column(db.Boolean, default=False)
     role_hidden = db.Column(db.Boolean, default=False)
     partner_hidden = db.Column(db.Boolean, default=False)
+    is_trashed = db.Column(db.Boolean, default=False)
 
     def __str__(self):
         return self.name or ''

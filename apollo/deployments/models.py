@@ -90,6 +90,7 @@ class Event(Resource):
         db.Integer, db.ForeignKey('location_set.id', ondelete='SET NULL'))
     participant_set_id = db.Column(
         db.Integer, db.ForeignKey('participant_set.id', ondelete='SET NULL'))
+    is_trashed = db.Column(db.Boolean, default=False)
     location_set = db.relationship('LocationSet', backref='events')
     participant_set = db.relationship('ParticipantSet', backref='events')
 

@@ -102,6 +102,7 @@ class Form(Resource):
     show_moment = db.Column(db.Boolean, default=False)
     show_map = db.Column(db.Boolean, default=False)
     show_progress = db.Column(db.Boolean, default=False)
+    is_trashed = db.Column(db.Boolean, default=False)
 
     events = db.relationship('Event', backref='forms', secondary=events_forms)
 

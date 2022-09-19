@@ -216,3 +216,10 @@ class BulkImageDownloadForm(FlaskForm):
     form_id = fields.SelectField(validators=[validators.required()])
     participant_id = fields.StringField(validators=[validators.optional()])
     tag = fields.StringField(validators=[validators.optional()])
+
+
+def generate_image_delete_form_class(submission):
+    class ImageAttachmentDeleteForm(FlaskForm):
+        tag = fields.SelectField(choices=submission.form.get_image_fields())
+
+    return ImageAttachmentDeleteForm

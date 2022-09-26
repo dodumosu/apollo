@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
+import zipfile
+from itertools import chain
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 from pandas.io.json import json_normalize
 from sqlalchemy import BigInteger, String, cast, func
 from sqlalchemy.dialects.postgresql import array_agg
 from sqlalchemy.orm import aliased
+from slugify import slugify
 
 from apollo.core import db
 from apollo.locations.models import Location, LocationPath, LocationType
-from apollo.submissions.models import Submission
+from apollo.submissions.models import Submission, SubmissionImageAttachment
 
 
 def make_submission_dataframe(query, form, selected_tags=None,
@@ -113,3 +118,46 @@ def make_submission_dataframe(query, form, selected_tags=None,
     ], axis=1, join_axes=[df.index])
 
     return df_summary
+
+
+def write_image_archive(handle, event_id: int, form_id: int, participant_id: int = None, tag: str = None): # noqa
+    def _generate_filename(attachment: SubmissionImageAttachment, tag=None):
+        extension = Path(attachment.photo.filename).suffix
+        parts = [
+            attachment.submission.event.name,
+            attachment.submission.form.name,
+            attachment.submission.participant.participant_id,
+        ]
+        if tag:
+            parts.append(tag)
+
+        filename = slugify('-'.join(parts)) + extension
+        return filename
+
+    params = {
+        'event_id': event_id,
+        'form_id': form_id,
+        'submission_type': 'O',
+    }
+
+    if participant_id is not None:
+        params['participant_id'] = participant_id
+
+    if tag is not None:
+        submissions = Submission.query.filter_by(**params)
+        attachment_uuids = list(chain(*submissions.with_entities(
+            Submission.data[tag])))
+        attachments = SubmissionImageAttachment.query.filter(
+            SubmissionImageAttachment.uuid.in_(attachment_uuids)
+        ).join(SubmissionImageAttachment.submission)
+    else:
+        attachments = SubmissionImageAttachment.query.join(
+            SubmissionImageAttachment.submission).filter_by(**params)
+
+    query = attachments.join(Submission.event).join(
+        Submission.participant).join(Submission.form)
+
+    with zipfile.ZipFile(handle, mode='w') as zf:
+        for attachment in query:
+            filename = _generate_filename(attachment, tag)
+            zf.writestr(filename, attachment.photo.file.read())

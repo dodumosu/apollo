@@ -132,7 +132,7 @@ def write_image_archive(handle, event_id: int, form_id: int, participant_id: int
             parts.append(tag)
 
         filename = slugify('-'.join(parts)) + extension
-        return filename
+        return filename.lower()
 
     params = {
         'event_id': event_id,

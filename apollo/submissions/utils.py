@@ -8,6 +8,7 @@ import pandas as pd
 from pandas.io.json import json_normalize
 from sqlalchemy import BigInteger, String, cast, func
 from sqlalchemy.dialects.postgresql import array_agg
+from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.orm import aliased
 from slugify import slugify
 
@@ -130,6 +131,10 @@ def write_image_archive(handle, event_id: int, form_id: int, participant_id: str
         ]
         if tag:
             parts.append(tag)
+        else:
+            image_fields = attachment.submission.get_image_data_fields()
+            associated_tag = image_fields.get(attachment.uuid.hex).get('tag')
+            parts.append(associated_tag)
 
         filename = slugify('-'.join(parts)) + extension
         return filename.lower()
@@ -145,8 +150,13 @@ def write_image_archive(handle, event_id: int, form_id: int, participant_id: str
 
     if tag is not None:
         submissions = Submission.query.filter_by(**params)
-        attachment_uuids = list(chain(*submissions.with_entities(
-            Submission.data[tag])))
+        try:
+            # if a non-image tag is sent, this wouldn't contain
+            # valid UUIDs, and the operation would fail
+            attachment_uuids = list(chain(*submissions.with_entities(
+                Submission.data[tag])))
+        except ProgrammingError:
+            attachment_uuids = []
         attachments = SubmissionImageAttachment.query.filter(
             SubmissionImageAttachment.uuid.in_(attachment_uuids)
         ).join(SubmissionImageAttachment.submission)

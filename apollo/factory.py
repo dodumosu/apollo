@@ -47,6 +47,23 @@ def configure_image_storage(base_config: typing.Dict) -> None:
         DepotManager.configure('images', configuration)
 
 
+def configure_generated_files_storage(base_config: typing.Dict) -> None:
+    if not DepotManager.get('generated_files'):
+        configuration = base_config.copy()
+        if settings.ATTACHMENTS_USE_S3:
+            configuration.update({
+                'depot.region_name': settings.AWS_GENERATED_FILES_REGION,
+                'depot.bucket': settings.AWS_GENERATED_FILES_BUCKET,
+            })
+        else:
+            configuration.update({
+                'depot.storage_path': str(
+                    settings.generated_files_storage_path),
+            })
+
+        DepotManager.configure('generated_files', configuration)
+
+
 def setup_attachment_storages() -> None:
     if DepotManager.get() is None:
         base_config = {}
@@ -67,6 +84,7 @@ def setup_attachment_storages() -> None:
 
         # TODO: configure default storage?
         configure_image_storage(base_config)
+        configure_generated_files_storage(base_config)
 
 
 def create_app(

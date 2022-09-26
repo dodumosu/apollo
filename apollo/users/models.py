@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
+from enum import IntEnum
+from depot.fields.sqlalchemy import UploadedFileField
+from flask_babelex import lazy_gettext as _
 from flask_security import RoleMixin, UserMixin
+from sqlalchemy_utils.types.choice import ChoiceType
 
 from apollo.core import db
 from apollo.dal.models import BaseModel
@@ -121,3 +125,27 @@ class UserUpload(BaseModel):
         'User',
         backref=db.backref('uploads', cascade='all, delete',
                            passive_deletes=True))
+
+
+class UserFileType(IntEnum):
+    def __new__(cls, value, label):
+        obj = int.__new__(cls, value)
+        obj._value_ = value
+
+        obj.label = label
+        return obj
+
+    EVENT_ARCHIVE = 1, _('Event Archive')
+    IMAGE_ARCHIVE = 2, _('Image Archive')
+
+
+class UserGeneratedFile(BaseModel):
+    __tablename__ = 'user_file'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey(
+        'user.id', ondelete='CASCADE'), nullable=False)
+    created = db.Column(db.DateTime, default=current_timestamp)
+    content = db.Column(UploadedFileField)
+    file_type = db.Column(
+        ChoiceType(UserFileType, impl=db.Integer), nullable=False)

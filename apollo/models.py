@@ -14,5 +14,6 @@ from apollo.submissions.models import (  # noqa
     Submission, SubmissionComment, SubmissionImageAttachment,
     SubmissionVersion)
 from apollo.users.models import (  # noqa
-    Role, User, UserUpload, role_resource_permissions, roles_permissions,
-    roles_users, user_resource_permissions, users_permissions)
+    Role, User, UserFileType, UserGeneratedFile, UserUpload,
+    role_resource_permissions, roles_permissions, roles_users,
+    user_resource_permissions, users_permissions)

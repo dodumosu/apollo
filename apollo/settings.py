@@ -231,12 +231,17 @@ REDIS_URL = 'redis://{host}/{database}'.format(
 KEEPALIVE_INTERVAL = 15  # in seconds
 
 TASK_STATUS_TTL = config('TASK_STATUS_TTL', cast=int, default=300)  # seconds
+GENERATED_FILE_TTL = config(
+    'GENERATED_FILE_TTL', cast=int, default=86400)  # seconds
 
 # attachment settings
 base_upload_path = Path(
     config('DEFAULT_STORAGE_PATH', default=default_upload_path))
 image_upload_path = Path(
     config('IMAGES_STORAGE_PATH', default=base_upload_path.joinpath('images')))
+generated_files_storage_path = Path(
+    config('GENERATED_FILES_STORAGE_PATH',
+           default=base_upload_path.joinpath('generated_files')))
 ATTACHMENTS_USE_S3 = config(
     'ATTACHMENTS_USE_S3', cast=config.boolean, default=False)
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID') if ATTACHMENTS_USE_S3 else None
@@ -246,6 +251,10 @@ AWS_DEFAULT_REGION = config('AWS_DEFAULT_REGION', default=None)
 AWS_DEFAULT_BUCKET = config('AWS_DEFAULT_BUCKET', default=None)
 AWS_IMAGES_REGION = config('AWS_IMAGES_REGION', default=AWS_DEFAULT_REGION)
 AWS_IMAGES_BUCKET = config('AWS_IMAGES_BUCKET', default=AWS_DEFAULT_BUCKET)
+AWS_GENERATED_FILES_REGION = config(
+    'AWS_GENERATED_FILES_REGION', default=AWS_DEFAULT_REGION)
+AWS_GENERATED_FILES_BUCKET = config(
+    'AWS_GENERATED_FILES_BUCKET', default=AWS_DEFAULT_BUCKET)
 AWS_ENDPOINT_URL = config('AWS_ENDPOINT_URL', default=None)
 
 # JWT settings

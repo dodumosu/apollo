@@ -120,7 +120,7 @@ def make_submission_dataframe(query, form, selected_tags=None,
     return df_summary
 
 
-def write_image_archive(handle, event_id: int, form_id: int, participant_id: int = None, tag: str = None): # noqa
+def write_image_archive(handle, event_id: int, form_id: int, participant_id: str = None, tag: str = None): # noqa
     def _generate_filename(attachment: SubmissionImageAttachment, tag=None):
         extension = Path(attachment.photo.filename).suffix
         parts = [

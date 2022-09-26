@@ -410,7 +410,7 @@ def get_image_manifest(**kwargs):
             parts.append(tag)
 
         filename = slugify('-'.join(parts)) + extension
-        return filename
+        return filename.lower()
 
     params = {
         'event_id': kwargs.get('event'),

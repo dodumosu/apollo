@@ -121,7 +121,9 @@ def make_submission_dataframe(query, form, selected_tags=None,
     return df_summary
 
 
-def write_image_archive(handle, event_id: int, form_id: int, participant_id: str = None, tag: str = None): # noqa
+def write_image_archive(
+        handle, event_id: int, form_id: int, participant_id: str = None,
+        tag: str = None, task=None):
     def _generate_filename(attachment: SubmissionImageAttachment, tag=None):
         extension = Path(attachment.photo.filename).suffix
         parts = [
@@ -167,7 +169,23 @@ def write_image_archive(handle, event_id: int, form_id: int, participant_id: str
     query = attachments.join(Submission.event).join(
         Submission.participant).join(Submission.form)
 
+    total_records = query.count()
+    processed_records = 0
+    error_records = 0
+    warning_records = 0
+    error_log = []
+
     with zipfile.ZipFile(handle, mode='w') as zf:
         for attachment in query:
             filename = _generate_filename(attachment, tag)
             zf.writestr(filename, attachment.photo.file.read())
+            processed_records += 1
+
+            if task:
+                task.update_task_info(
+                    total_records=total_records,
+                    processed_records=processed_records,
+                    error_records=error_records,
+                    warning_records=warning_records,
+                    error_log=error_log,
+                )

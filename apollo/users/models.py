@@ -149,3 +149,8 @@ class UserGeneratedFile(BaseModel):
     content = db.Column(UploadedFileField)
     file_type = db.Column(
         ChoiceType(UserFileType, impl=db.Integer), nullable=False)
+
+    user = db.relationship(
+        'User',
+        backref=db.backref(
+            'files', cascade='all, delete', passive_deletes=True))

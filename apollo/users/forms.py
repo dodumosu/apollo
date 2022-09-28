@@ -3,6 +3,7 @@ from flask_babelex import lazy_gettext as _
 from flask_wtf import FlaskForm
 from sqlalchemy.sql import and_, exists
 from wtforms import fields, validators, widgets
+from wtforms_alchemy.fields import QuerySelectMultipleField
 
 from apollo import constants, models, services
 
@@ -65,3 +66,13 @@ class UserDetailsForm(FlaskForm):
             raise validators.ValidationError(
                 _('The email %(email)s is not available',
                     email=field.data))
+
+
+def generate_user_delete_form_class(user: models.User):
+    def _get_user_files():
+        return models.UserGeneratedFile.query.filter_by(user=user)
+
+    class UserFileDeleteForm(FlaskForm):
+        user_files = QuerySelectMultipleField(query_factory=_get_user_files)
+
+    return UserFileDeleteForm

@@ -209,3 +209,10 @@ def make_submission_edit_form_class(event, form):
         (FlaskForm,),
         form_fields
     )
+
+
+class BulkImageDownloadForm(FlaskForm):
+    event_id = fields.SelectField(validators=[validators.required()])
+    form_id = fields.SelectField(validators=[validators.required()])
+    participant_id = fields.StringField(validators=[validators.optional()])
+    tag = fields.StringField(validators=[validators.optional()])

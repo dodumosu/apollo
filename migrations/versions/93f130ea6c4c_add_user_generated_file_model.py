@@ -1,7 +1,7 @@
 """add user-generated file model
 
 Revision ID: 93f130ea6c4c
-Revises: 690fb1fe46b4
+Revises: b8f6bf964fec
 Create Date: 2022-09-26 09:57:37.491025
 
 """
@@ -15,7 +15,7 @@ from apollo.users.models import UserFileType
 
 # revision identifiers, used by Alembic.
 revision = "93f130ea6c4c"
-down_revision = "690fb1fe46b4"
+down_revision = "b8f6bf964fec"
 branch_labels = None
 depends_on = None
 

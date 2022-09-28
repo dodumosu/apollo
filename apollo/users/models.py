@@ -146,9 +146,9 @@ class UserGeneratedFile(BaseModel):
     user_id = db.Column(db.Integer, db.ForeignKey(
         'user.id', ondelete='CASCADE'), nullable=False)
     created = db.Column(db.DateTime, default=current_timestamp)
-    content = db.Column(UploadedFileField)
+    content = db.Column(UploadedFileField(upload_storage='generated_files'))
     file_type = db.Column(
-        ChoiceType(UserFileType, impl=db.Integer), nullable=False)
+        ChoiceType(UserFileType, impl=db.Integer()), nullable=False)
 
     user = db.relationship(
         'User',

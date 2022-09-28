@@ -11,6 +11,8 @@ import sqlalchemy_utils
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
+from apollo.users.models import UserFileType
+
 # revision identifiers, used by Alembic.
 revision = "93f130ea6c4c"
 down_revision = "690fb1fe46b4"
@@ -27,12 +29,16 @@ def upgrade():
         sa.Column("created", sa.DateTime(), nullable=True),
         sa.Column(
             "content",
-            depot.fields.sqlalchemy.UploadedFileField(),
+            depot.fields.sqlalchemy.UploadedFileField(
+                upload_storage="generated_files"
+            ),
             nullable=True,
         ),
         sa.Column(
             "file_type",
-            sqlalchemy_utils.types.choice.ChoiceType(),
+            sqlalchemy_utils.types.choice.ChoiceType(
+                UserFileType, impl=sa.Integer()
+            ),
             nullable=False,
         ),
         sa.Column("uuid", postgresql.UUID(as_uuid=True), nullable=False),

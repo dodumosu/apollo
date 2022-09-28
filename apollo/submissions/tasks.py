@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
+import datetime
 import logging
 import os
+import pathlib
+import tempfile
 
 from apollo import models, helpers, settings
 from apollo.core import uploads
 from apollo.factory import create_celery_app
 from apollo.participants.models import Participant
 from flask_babelex import gettext
+from slugify import slugify
 from ..models import Submission
 from ..users.models import UserFileType, UserGeneratedFile, UserUpload
 from .utils import write_image_archive
@@ -144,12 +148,27 @@ def init_survey_submissions(self, event_id, form_id, upload_id):
 @celery.task(bind=True)
 def create_image_archive(
         self, user_id, event_id, form_id, participant_id, tag):
-    user_file = UserGeneratedFile(
-        user_id=user_id, file_type=UserFileType.IMAGE_ARCHIVE)
-    write_image_archive(
-        user_file.content.file, event_id, form_id, participant_id,
-        tag, self)
-    user_file.save()
+    with tempfile.TemporaryDirectory() as temp_dir:
+        event = models.Event.query.filter_by(id=event_id).first()
+        form = models.Form.query.filter_by(id=form_id).first()
+
+        if not event or not form:
+            return
+
+        filename_parts = [event.name, form.name, participant_id, tag]
+        timestamp = int(
+            datetime.datetime.now(datetime.timezone.utc).timestamp())
+        filename_parts = [p for p in filename_parts if p]
+        filename_parts.append(timestamp)
+        filename = slugify('-'.join(filename_parts)) + '.zip'
+
+        with pathlib.Path(temp_dir).joinpath(filename).open(mode='wb') as tf:
+            write_image_archive(
+                tf, event_id, form_id, participant_id, tag, self)
+            user_file = UserGeneratedFile(
+                content=tf, file_type=UserFileType.IMAGE_ARCHIVE,
+                user_id=user_id)
+            user_file.save()
 
     # delete file after the TTL (defaults to 24H)
     from apollo.users.tasks import prune_generated_file

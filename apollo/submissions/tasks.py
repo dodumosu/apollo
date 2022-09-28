@@ -156,15 +156,16 @@ def create_image_archive(
             return
 
         filename_parts = [event.name, form.name, participant_id, tag]
-        timestamp = int(
-            datetime.datetime.now(datetime.timezone.utc).timestamp())
+        timestamp = str(int(
+            datetime.datetime.now(datetime.timezone.utc).timestamp()))
         filename_parts = [p for p in filename_parts if p]
         filename_parts.append(timestamp)
         filename = slugify('-'.join(filename_parts)) + '.zip'
 
-        with pathlib.Path(temp_dir).joinpath(filename).open(mode='wb') as tf:
+        with pathlib.Path(temp_dir).joinpath(filename).open(mode='w+b') as tf:
             write_image_archive(
                 tf, event_id, form_id, participant_id, tag, self)
+            tf.seek(0)
             user_file = UserGeneratedFile(
                 content=tf, file_type=UserFileType.IMAGE_ARCHIVE,
                 user_id=user_id)
@@ -173,4 +174,4 @@ def create_image_archive(
     # delete file after the TTL (defaults to 24H)
     from apollo.users.tasks import prune_generated_file
     prune_generated_file.apply_async(
-        (user_file.id,), countdown=settings.GENERATED_FILE_TTL)
+        args=(user_file.id,), countdown=settings.GENERATED_FILE_TTL)

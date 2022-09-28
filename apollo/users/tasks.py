@@ -6,7 +6,7 @@ from apollo.users.models import UserGeneratedFile
 celery = create_celery_app()
 
 
-@celery.task(bind=True)
+@celery.task()
 def prune_generated_file(id: int) -> None:
     user_file = UserGeneratedFile.query.filter_by(id=id).first()
     if not user_file:

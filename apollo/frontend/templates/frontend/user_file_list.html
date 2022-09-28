@@ -1,0 +1,49 @@
+{%- extends 'frontend/layout.html' -%}
+{%- from 'frontend/macros/pagination.html' import render_pager -%}
+{% block content %}
+
+<div class="card-header">
+  {{ render_pager(pager, 'users.user_file_list', args) }}
+</div>
+
+<div class="table-responsive-md mb-n3">
+  <table class="table table-sm table-hover">
+    <thead class="thead-light">
+      <tr>
+        <th></th>
+        <th>{{ _('Type') }}</th>
+        <th>{{ _('Created At') }}</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user_file in pager.items %}
+      <tr>
+        <td></td>
+        <td>{{ user_file.file_type.label }}</td>
+        <td data-file-timestamp="{{ user_file.created.timestamp() }}">{{ user_file.created }}</td>
+        <td><a href="{{ user_file.content.url }}" download="{{ user_file.content.filename }}">Download</a></td>
+      </tr>
+      {% else %}
+      <tr class="table-warning">
+        <td class="text-center text-muted" colspan="4">{{ _('No Data Available') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card-footer">
+  {{ render_pager(pager, 'users.user_file_list', args) }}
+</div>
+{%- endblock -%}
+
+{%- block scripts -%}
+<script>
+  var formatOptions = {year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric'};
+  document.querySelectorAll('[data-file-timestamp]').forEach(function (element) {
+    var timeStamp = Number.parseFloat(element.dataset.fileTimestamp) * 1000;
+    element.textContent = (new Intl.DateTimeFormat('default', formatOptions).format(new Date(timeStamp)));
+  });
+</script>
+{%- endblock -%}

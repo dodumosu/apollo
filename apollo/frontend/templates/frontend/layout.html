@@ -117,6 +117,8 @@
                                 {%- endif %}
                                 {%- if not current_user.has_role('field-coordinator') %}<a class="dropdown-item" href="{{ url_for('users.user_profile') }}">{{ _('User Settings') }}</a>
                                 <div class="dropdown-divider"></div>{%- endif %}
+                                {%- if perms.export_submissions.can() %}<a href="{{ url_for('users.user_file_list') }}" class="dropdown-item">{{ _('User Files') }}</a>
+                                <div class="dropdown-divider"></div>{%- endif %}
                                 <a class="dropdown-item" href="{{ url_for_security('logout') }}">{{ _('Logout') }}</a>
                             </div>
                         </li>

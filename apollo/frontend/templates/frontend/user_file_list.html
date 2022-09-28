@@ -7,30 +7,35 @@
 </div>
 
 <div class="table-responsive-md mb-n3">
-  <table class="table table-sm table-hover">
-    <thead class="thead-light">
-      <tr>
-        <th></th>
-        <th>{{ _('Type') }}</th>
-        <th>{{ _('Created At') }}</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for user_file in pager.items %}
-      <tr>
-        <td></td>
-        <td>{{ user_file.file_type.label }}</td>
-        <td data-file-timestamp="{{ user_file.created.timestamp() }}">{{ user_file.created }}</td>
-        <td><a href="{{ user_file.content.url }}" download="{{ user_file.content.filename }}">Download</a></td>
-      </tr>
-      {% else %}
-      <tr class="table-warning">
-        <td class="text-center text-muted" colspan="4">{{ _('No Data Available') }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <form action="" method="post">
+    {{ form.csrf_token() }}
+    <table class="table table-sm table-hover">
+      <thead class="thead-light">
+        <tr>
+          <th><input type="checkbox" class="custom-control custom-checkbox"></th>
+          <th>{{ _('Type') }}</th>
+          <th>{{ _('Created At') }}</th>
+          <th>{{ _('Size') }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user_file in pager.items %}
+        <tr>
+          <td><input type="checkbox" name="{{ form.user_files.name }}" value="{{ user_file.id }}" class="custom-control custom-checkbox"></td>
+          <td>{{ user_file.file_type.label }}</td>
+          <td data-file-timestamp="{{ user_file.created.timestamp() }}">{{ user_file.created }}</td>
+          <td>{{ user_file.content.file.content_length|filesize }}</td>
+          <td><a href="{{ user_file.content.url }}" download="{{ user_file.content.filename }}">Download</a></td>
+        </tr>
+        {% else %}
+        <tr class="table-warning">
+          <td class="text-center text-muted" colspan="5">{{ _('No Data Available') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </form>
 </div>
 
 <div class="card-footer">

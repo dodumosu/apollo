@@ -19,6 +19,40 @@
 <script type="text/javascript" src="{{ asset_url_for('leaflet.js') }}" charset="utf-8"></script>
 <script type="text/javascript">
 $(function () {
+  function downloadImage(url, filename) {
+    fetch(url).then(function (response) { return response.blob(); }).then(function (imageBlob) {
+      var imgUrl = URL.createObjectURL(imageBlob);
+      var anchor = document.createElement('a');
+      anchor.href = imgUrl;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      URL.revokeObjectURL(imgUrl);
+    })
+  }
+
+  document.addEventListener('click', function (event) {
+    if (!event.target.matches('[data-download-all]')) return;
+
+    var endpoint = "{{ url_for('submissions.get_image_manifest') }}";
+    var eventId = event.target.dataset.eventId;
+    var formId = event.target.dataset.formId;
+    var formData = new FormData();
+    formData.append('event', eventId);
+    formData.append('form', formId);
+    fetch(endpoint, {
+      method: 'POST',
+      body: formData
+    }).then(function (response) {
+      return response.json();
+    }).then(function (data) {
+      data.images.forEach(function (spec) {
+        downloadImage(spec.url, spec.filename);
+      });
+    })
+  });
+
   moment.lang('{{ g.locale }}');
   var marker = undefined;
   var map = undefined;
@@ -232,9 +266,13 @@ ${(props.last_updated ? `
     <span class="sr-only">{{ _('Toggle Dropdown') }}</span>
   </button>
   <div class="dropdown-menu" aria-labelledby="exportMenuReference">
-    <a class="dropdown-item" href="{{ url_for('submissions.submission_list', form_id=form.id, export='observer', **request.args) }}">{{ _('Observer') }}</a></li>
-    <a class="dropdown-item" href="{{ url_for('submissions.submission_list', form_id=form.id, export='master', **request.args) }}">{{ _('Location') }}</a></li>
-    <a class="dropdown-item" href="{{ url_for('submissions.submission_list', form_id=form.id, export='aggregated', **request.args) }}">{{ _('Aggregate') }}</a></li>
+    <li><a class="dropdown-item" href="{{ url_for('submissions.submission_list', form_id=form.id, export='observer', **request.args) }}">{{ _('Observer') }}</a></li>
+    <li><a class="dropdown-item" href="{{ url_for('submissions.submission_list', form_id=form.id, export='master', **request.args) }}">{{ _('Location') }}</a></li>
+    <li><a class="dropdown-item" href="{{ url_for('submissions.submission_list', form_id=form.id, export='aggregated', **request.args) }}">{{ _('Aggregate') }}</a></li>
+    {% if form.has_image_fields %}
+    <li><a class="dropdown-item" href="{{ url_for('submissions.generate_image_archive', form_id=form.id) }}">{{ _('Create Image Archive') }}</a></li>
+    <li><a class="dropdown-item" data-download-all="true" data-event-id="{{ g.event.id }}" data-form-id="{{ form.id }}">{{ _('Download All Images') }}</a></li>
+    {% endif %}
   </div>
 </div>
 {% endif %}
@@ -254,6 +292,19 @@ ${(props.last_updated ? `
 {% endblock %}
 
 {% block content -%}
+<div class="row align-items-center">
+  <div class="col-md-6 col-lg-4 offset-md-3 offset-lg-4">
+    {%- with messages = get_flashed_messages(with_categories=true) -%}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-info">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {%- endwith %}
+  </div>
+</div>
 <div class="row">
   <div class="col-md-12">
     {{ render_filter_form(form, filter_form, location) }}

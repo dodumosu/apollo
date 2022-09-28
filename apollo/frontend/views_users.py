@@ -63,6 +63,7 @@ def user_file_list():
     context = {
         "breadcrumbs": [_("My Files")],
         "page_title": _("My Files"),
+        "form": forms.generate_user_file_delete_form_class(current_user)(),
     }
     args = request.args.to_dict(flat=False)
     page = int(args.pop("page", [1])[0])
@@ -81,7 +82,7 @@ def user_file_list():
 @route(bp, "/user/files/delete", methods=["POST"])
 @login_required
 def user_file_delete():
-    form = forms.generate_user_delete_form_class(current_user)()
+    form = forms.generate_user_file_delete_form_class(current_user)()
     if form.validate_on_submit():
         user_files = form.data["user_files"]
         for user_file in user_files:

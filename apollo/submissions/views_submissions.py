@@ -6,8 +6,9 @@ from http import HTTPStatus
 from uuid import uuid4
 
 from flask import (
-    Blueprint, Response, abort, current_app, g, jsonify, make_response,
-    redirect, render_template, request, stream_with_context, url_for, session
+    Blueprint, Markup, Response, abort, current_app, flash, g, jsonify,
+    make_response, redirect, render_template, request, stream_with_context,
+    url_for, session
 )
 from flask_babelex import get_locale, gettext, lazy_gettext as _
 from flask_httpauth import HTTPBasicAuth
@@ -41,6 +42,7 @@ from apollo.submissions.aggregation import (
     aggregate_dataset, aggregated_dataframe, _qa_counts)
 from apollo.submissions.models import QUALITY_STATUSES, Submission
 from apollo.submissions.qa.query_builder import generate_qa_queries
+from apollo.submissions.tasks import create_image_archive
 from apollo.submissions.utils import make_submission_dataframe
 
 
@@ -1741,3 +1743,18 @@ def delete_image(submission_id: int):
                 'status': 'error',
                 'message': gettext('Image not found'),
             }), HTTPStatus.NOT_FOUND
+
+
+@route(bp, '/submissions/<int:form_id>/archive-images')
+@permissions.export_submissions.require(403)
+def generate_image_archive(form_id: int):
+    event_id = g.event.id
+
+    create_image_archive.delay(
+        user_id=current_user.id, event_id=event_id, form_id=form_id,
+        participant_id=None, tag=None)
+
+    flash(
+        Markup(render_template('frontend/image_archive_flash.html')), 'info')
+
+    return redirect(request.referrer)

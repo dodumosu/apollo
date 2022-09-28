@@ -68,7 +68,7 @@ class UserDetailsForm(FlaskForm):
                     email=field.data))
 
 
-def generate_user_delete_form_class(user: models.User):
+def generate_user_file_delete_form_class(user: models.User):
     def _get_user_files():
         return models.UserGeneratedFile.query.filter_by(user=user)
 

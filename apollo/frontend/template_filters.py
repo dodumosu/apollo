@@ -7,6 +7,7 @@ from datetime import date, datetime
 from flask import Markup
 from flask_babelex import get_locale, lazy_gettext as _
 from geoalchemy2.shape import to_shape
+from humanize import naturalsize
 import pandas as pd
 
 from apollo.process_analysis.common import generate_field_stats
@@ -113,3 +114,7 @@ def longitude(geom):
 
 def latitude(geom):
     return to_shape(geom).y
+
+
+def filesize(length):
+    return naturalsize(length)

@@ -40,7 +40,8 @@ custom_filters = {
     'reverse_dict': template_filters.reverse_dict,
     'qa_status': template_filters.qa_status,
     'longitude': template_filters.longitude,
-    'latitude': template_filters.latitude
+    'latitude': template_filters.latitude,
+    'filesize': template_filters.filesize,
 }
 
 

@@ -10,13 +10,13 @@
   <meta name="msapplication-TileImage" content="{{ url_for('pwa.static', filename='img/icons-72.png') }}">
   <meta name="msapplication-TileColor" content="#000">
   <link rel="stylesheet" href="{{ url_for('pwa.static', filename='vendor/animate.css/animate.min.css') }}">
-  <link rel="stylesheet" href="{{ url_for('pwa.static', filename='vendor/autocomplete/style.css') }}">
   {% if g.locale.text_direction == 'rtl' %}
   <link rel="stylesheet" href="{{ url_for('pwa.static', filename='vendor/bootstrap/css/bootstrap.rtl.min.css') }}">
   {% else %}
   <link rel="stylesheet" href="{{ url_for('pwa.static', filename='vendor/bootstrap/css/bootstrap.min.css') }}">
   {% endif %}
   <link rel="stylesheet" href="{{ url_for('pwa.static', filename='vendor/notiflix/notiflix-2.7.0.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('pwa.static', filename='vendor/tom-select/tom-select.bootstrap5.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('pwa.static', filename='css/main.css') }}">
   <link rel="manifest" href="{{ url_for('pwa.static', filename='manifest.json') }}">
   <link rel="apple-touch-icon" href="{{ url_for('pwa.static', filename='img/icons-72.png') }}">
@@ -187,9 +187,8 @@
               <fieldset v-if="form.form_type === 'SURVEY'">
                 <div class="mb-3">
                   <label for="serial" class="form-label">{{ _('Serial number') }}</label>
-                  <div id="autocomplete" class="autocomplete" ref="autocomplete">
-                    <input type="text" class="form-control" name="serial" id="serial" v-model="submission.serial" :disabled="disableSerialInput">
-                    <ul class="autocomplete-result-list"></ul>
+                  <div dir="{{ g.locale.text_direction }}">
+                    <select name="serial" id="serial" v-model="submission.serial"></select>
                   </div>
                 </div>
               </fieldset>
@@ -286,7 +285,6 @@
   <script src="{{ url_for('pwa.static', filename='vendor/sentry/bundle.min.js') }}"></script>
   {% endif %}
   <script src="{{ url_for('pwa.static', filename='vendor/popper.js/popper.min.js') }}"></script>
-  <script src="{{ url_for('pwa.static', filename='vendor/autocomplete/autocomplete.min.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='vendor/bootstrap/js/bootstrap.min.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='vendor/dexie/dexie.min.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='vendor/fast-copy/fast-copy.min.js') }}"></script>
@@ -295,6 +293,7 @@
   <script src="{{ url_for('pwa.static', filename='vendor/notiflix/notiflix-2.7.0.min.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='vendor/tiny-cookie/tiny-cookie.min.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='vendor/tippy.js/tippy.umd.min.js') }}"></script>
+  <script src="{{ url_for('pwa.static', filename='vendor/tom-select/tom-select.complete.min.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='vendor/vue/vue.min.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='js/app.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='js/client.js') }}"></script>
@@ -415,11 +414,11 @@
 
     // database setup
     const db = new Dexie('apollo');
-    db.version(5).stores({
+    db.version(6).stores({
       forms: 'id, participant_id',
       participants: 'participant_id, lastLogin',
       serials: '[participant_id+form+serial], [participant_id+form], form, participant_id, serial',
-      submissions: '++id, form, participant_id, passedQA, posted, queued_at, uuid, [participant_id+id], [participant_id+form], [participant_id+form+id], [participant_id+queued_at], [participant_id+passedQA]'
+      submissions: '++id, form, participant_id, passedQA, posted, queued_at, serial, uuid, [participant_id+id], [participant_id+form], [participant_id+form+id], [participant_id+queued_at], [participant_id+passedQA]'
     });
 
     db.open().catch(() => {
@@ -781,12 +780,6 @@
             return '{{ _("Close") }}';
           else
             return '{{ _("Save and close") }}';
-        },
-        disableSerialInput() {
-          return this.form.form_type === 'SURVEY' &&
-            this.submission.serial !== '' &&
-            this.submission.serial !== null &&
-            this.submission.serial !== undefined;
         }
       },
       data() {
@@ -854,15 +847,13 @@
 
           return true;
         },
-        async search(serial) {
+        async search(serial, callback) {
           let submissions = await db.submissions.where({form: this.form.id, participant_id: this.participant_id}).filter(s => !!s.serial).toArray();
           let usedSerials = new Set(submissions.map(s => s.serial));
           let re = new RegExp(serial);
           let entries = await db.serials.where({form: this.form.id, participant_id: this.participant_id}).toArray();
-          return entries.filter(entry => entry.serial.match(re) && !usedSerials.has(entry.serial)).slice(0, 10);
-        },
-        getResultValue(entry) {
-          return entry.serial;
+          let items = entries.filter(entry => entry.serial.match(re) && !usedSerials.has(entry.serial)).slice(0, 20);
+          callback(items);
         },
         getCompletionClass(index) {
           let appliedClasses = [];
@@ -993,11 +984,15 @@
         instance.location = instance.submission.data.location;
 
         if (instance.form.form_type === 'SURVEY') {
-          instance.autocomplete = new Autocomplete(instance.$refs.autocomplete, {
-            debounceTime: 500,
-            search: instance.search,
-            getResultValue: instance.getResultValue,
-            onSubmit: result => { instance.submission.serial = result.serial; }
+          instance.autocomplete = new TomSelect('#serial', {
+            labelField: 'serial',
+            load: instance.search,
+            searchField: 'serial',
+            valueField: 'serial'
+          });
+
+          instance.autocomplete.on('change', (serial) => {
+            instance.sub
           });
         }
 

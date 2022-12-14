@@ -10,8 +10,6 @@ const CACHED_URLS = [
   '/pwa/static/js/app.js',
   '/pwa/static/js/client.js',
   '/pwa/static/vendor/animate.css/animate.min.css',
-  '/pwa/static/vendor/autocomplete/autocomplete.min.js',
-  '/pwa/static/vendor/autocomplete/style.css',
   '/pwa/static/vendor/bootstrap/css/bootstrap.min.css',
   '/pwa/static/vendor/bootstrap/css/bootstrap.rtl.min.css',
   '/pwa/static/vendor/bootstrap/js/bootstrap.min.js',
@@ -23,6 +21,8 @@ const CACHED_URLS = [
   '/pwa/static/vendor/notiflix/notiflix-2.7.0.min.js',
   '/pwa/static/vendor/popper.js/popper.min.js',
   '/pwa/static/vendor/tippy.js/tippy.umd.min.js',
+  '/pwa/static/vendor/tom-select/tom-select.bootstrap5.min.css',
+  '/pwa/static/vendor/tom-select/tom-select.complete.min.js',
   '/pwa/static/vendor/sentry/bundle.min.js',
   '/pwa/static/vendor/vue/vue.min.js',
 ];

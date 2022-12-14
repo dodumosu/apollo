@@ -42,7 +42,7 @@
               <div class="mb-3">
                 <transition mode="out-in" enter-active-class="animate__animated animate__fadeIn" leave-active-class="animate__animated animate__fadeOut">
                   <form-list v-if="currentForm === null && currentSubmission === null" :forms="forms" :navigator-online="navigatorOnline" :serial-counts="serialCounts" :submission-groups="groupedSubmissions" :submissions="submissions" :syncing-submission="syncingSubmission" @load-forms="refreshForms" @unauthorized="loggedOut" @edit-submission="editSubmission" @reload-data="reloadStoredData"></form-list>
-                  <submission-editor v-else-if="currentForm !== null && currentSubmission !== null" :form="currentForm" :navigator-online="navigatorOnline" :participant_id="participant.participant_id" :submission="currentSubmission" :is-location-access-allowed="participant.allowLocationAccess" @save-submission="saveSubmissionToDatabase" @post-submission="postSubmission" @clear-form="clearCurrentForm"></submission-editor>
+                  <submission-editor v-else-if="currentForm !== null && currentSubmission !== null" :form="currentForm" :navigator-online="navigatorOnline" :participant_id="participant.participant_id" :submission="currentSubmission" :is-location-access-allowed="participant.allowLocationAccess" @save-submission="saveSubmissionToDatabase" @post-submission="postSubmission" @clear-form="clearCurrentForm" @load-survey="loadSurvey"></submission-editor>
                 </transition>
               </div>
             </div>
@@ -188,7 +188,9 @@
                 <div class="mb-3">
                   <label for="serial" class="form-label">{{ _('Serial number') }}</label>
                   <div dir="{{ g.locale.text_direction }}">
-                    <select name="serial" id="serial" v-model="submission.serial"></select>
+                    <select name="serial" id="serial" v-model="submission.serial">
+                      <option :value="submission.serial">[[ submission.serial ]]</option>
+                    </select>
                   </div>
                 </div>
               </fieldset>
@@ -294,7 +296,7 @@
   <script src="{{ url_for('pwa.static', filename='vendor/tiny-cookie/tiny-cookie.min.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='vendor/tippy.js/tippy.umd.min.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='vendor/tom-select/tom-select.complete.min.js') }}"></script>
-  <script src="{{ url_for('pwa.static', filename='vendor/vue/vue.min.js') }}"></script>
+  <script src="{{ url_for('pwa.static', filename='vendor/vue/vue.full.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='js/app.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='js/client.js') }}"></script>
   <script>
@@ -984,7 +986,11 @@
         instance.location = instance.submission.data.location;
 
         if (instance.form.form_type === 'SURVEY') {
+          let initialItems = instance.submission.serial ? [instance.submission.serial] : [];
+          let initialOptions = instance.submission.serial ? [{value: instance.submission.serial, text: instance.submission.serial}] : [];
           instance.autocomplete = new TomSelect('#serial', {
+            items: initialItems,
+            options: initialOptions,
             labelField: 'serial',
             load: instance.search,
             searchField: 'serial',
@@ -992,7 +998,7 @@
           });
 
           instance.autocomplete.on('change', (serial) => {
-            instance.sub
+            instance.$emit('load-survey', serial);
           });
         }
 
@@ -1225,6 +1231,26 @@
           this.currentSubmission = null;
           this.forms = [];
           this.submissions = [];
+        },
+        loadSurvey(serial) {
+          let instance = this;
+
+          if (instance.currentForm.form_type !== 'SURVEY')
+            return;
+
+          // if there's a current submission with a serial, save it
+          if (instance.currentSubmission && instance.currentSubmission.serial && instance.currentSubmission !== serial) {
+            instance.saveSubmissionToDatabase(instance.currentSubmission).then(() => {
+              let submission = instance.submissions.find(sub => sub.form === instance.currentForm && sub.serial === serial);
+    
+              if (!submission) {
+                submission = instance.newSubmission(instance.currentForm);
+                submission.serial = serial;
+              }
+    
+              instance.editSubmission(instance.currentForm, submission);
+            });
+          }
         },
         newSubmission(form) {
           let instance = this;

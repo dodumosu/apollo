@@ -7,7 +7,7 @@ from arpeggio import PTNodeVisitor, visit_parse_tree
 from arpeggio.cleanpeg import ParserPEG
 from sqlalchemy import (
     BigInteger, Integer, String, and_, case, cast, false, func, null, or_)
-from sqlalchemy.dialects.postgresql import array
+from sqlalchemy.dialects.postgresql import JSONB, array
 from sqlalchemy.sql.operators import concat_op
 
 from apollo.models import Location, Participant, Submission
@@ -36,7 +36,8 @@ product = exponent (("*" / "/") exponent)*
 sum = product (("+" / "-") product)*
 concat = sum (("|") sum)*
 comparison = concat ((">=" / ">" / "<=" / "<" / "=" / "!=") concat)*
-expression = comparison (("&&" / "||") comparison)*
+boolexp = (number "in" variable) / (comparison)
+expression = boolexp (("&&" / "||") boolexp)*
 qa = expression+ EOF
 '''
 
@@ -161,10 +162,6 @@ class InlineQATreeVisitor(BaseVisitor):
         if var_name not in self.form.tags:
             return 'NULL'
 
-        field = self.form.get_field_by_tag(var_name)
-        if field['type'] == 'multiselect':
-            return 'NULL'
-
         return self.submission.data.get(var_name, 'NULL')
 
     def visit_lookup(self, node, children):
@@ -189,6 +186,13 @@ class InlineQATreeVisitor(BaseVisitor):
                 # both sides are NULL
                 return 'NULL'
         return super().visit_comparison(node, children)
+    
+    def visit_boolexp(self, node, children):
+        if len(children) == 1:
+            return children[0]
+        
+        number, container = children
+        return number in container
     
     def visit_exponent(self, node, children):
         if len(children) == 1:
@@ -239,8 +243,7 @@ class QATreeVisitor(BaseVisitor):
         field = self.form.get_field_by_tag(var_name)
 
         if field['type'] == 'multiselect':
-            self.lock_null = True
-            return null()
+            return Submission.data[var_name]
 
         cast_type = _get_cast_type(field)
         if cast_type not in (BigInteger, Integer, String):
@@ -270,6 +273,13 @@ class QATreeVisitor(BaseVisitor):
             elif cast_type is not None:
                 return Submission.data[var_name].astext.cast(cast_type)
             return Submission.data[var_name]
+
+    def visit_boolexp(self, node, children):
+        if len(children) == 1:
+            return children[0]
+        
+        number, container = children
+        return container.op('@>')(cast(number, JSONB))
 
     def visit_exponent(self, node, children):
         if len(children) == 1:

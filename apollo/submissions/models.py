@@ -246,9 +246,16 @@ class Submission(BaseModel):
 
     def update_group_timestamps(self, data: dict) -> None:
         # local to avoid circular import
+        from apollo.formsframework.models import Form
         from apollo.frontend.helpers import DictDiffer
 
-        form = self.form
+        if self.form is None and self.form_id is not None:
+            form = Form.query.filter_by(id=self.form_id)
+        else:
+            form = self.form
+
+        if form is None:
+            return
         form._populate_group_cache()
         group_names = form._group_cache.keys()
         original_data = (self.data or {}).copy()

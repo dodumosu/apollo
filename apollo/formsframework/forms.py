@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import math
 import re
-from datetime import datetime
 from functools import partial
 
 from flask import g
@@ -21,7 +20,7 @@ from ..submissions.models import (
 from ..participants.models import Participant, PhoneContact
 from ..deployments.models import Event
 from ..formsframework.models import Form
-from ..utils import current_timestamp
+from ..utils import current_timestamp, naive_current_timestamp
 
 ugly_phone = re.compile('[^0-9]*')
 
@@ -58,7 +57,7 @@ def update_submission_version(submission):
     services.submission_versions.create(
         submission_id=submission.id,
         data=version_data,
-        timestamp=datetime.utcnow(),
+        timestamp=naive_current_timestamp(),
         channel=channel,
         identity=identity,
         deployment_id=submission.deployment_id

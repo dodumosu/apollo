@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
 from uuid import uuid4
 
 from flask import Blueprint, g, make_response, render_template, request
 from flask_babelex import gettext as _
 from flask_httpauth import HTTPDigestAuth
 from lxml import etree
-import pytz
 from slugify import slugify
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -32,7 +30,7 @@ NSMAP = {
 def make_open_rosa_headers():
     return {
         OPEN_ROSA_VERSION_HEADER: OPEN_ROSA_VERSION,
-        'Date': pytz.utc.localize(datetime.utcnow()).strftime(
+        'Date': current_timestamp().strftime(
             '%a, %d %b %Y %H:%M:%S %Z'),
         'X-OpenRosa-Accept-Content-Length': settings.MAX_CONTENT_LENGTH
     }
@@ -351,7 +349,7 @@ def update_submission_version(submission):
     services.submission_versions.create(
         submission=submission,
         data=version_data,
-        timestamp=datetime.utcnow(),
+        timestamp=current_timestamp(),
         channel=channel,
         identity=identity,
         deployment_id=submission.deployment_id

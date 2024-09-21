@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
-
 from flask_babelex import gettext as _
 import sqlalchemy as sa
 from sqlalchemy_utils import ChoiceType
 
 from apollo.core import db
 from apollo.dal.models import BaseModel
+from apollo.utils import naive_current_timestamp
 
 
 class Message(BaseModel):
@@ -30,7 +29,7 @@ class Message(BaseModel):
     text = db.Column(db.String)
     message_type = db.Column(
         ChoiceType(MESSAGE_TYPES), default=MESSAGE_TYPES[0][0])
-    received = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    received = db.Column(db.DateTime, default=naive_current_timestamp, index=True)
     delivered = db.Column(db.DateTime)
     deployment_id = db.Column(db.Integer, db.ForeignKey(
         'deployment.id', ondelete='CASCADE'), nullable=False)

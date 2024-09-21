@@ -242,7 +242,7 @@ def submission_list(form_id):
         basename = slugify('%s %s %s %s' % (
             g.event.name.lower(),
             form.name.lower(),
-            datetime.utcnow().strftime('%Y %m %d %H%M%S'),
+            autils.current_timestamp().strftime('%Y %m %d %H%M%S'),
             mode))
         content_disposition = 'attachment; filename=%s.csv' % basename
         if mode == 'aggregated':
@@ -1529,7 +1529,7 @@ def quality_assurance_list(form_id):
         basename = slugify('%s %s %s %s' % (
             g.event.name.lower(),
             form.name.lower(),
-            datetime.utcnow().strftime('%Y %m %d %H%M%S'),
+            autils.current_timestamp().strftime('%Y %m %d %H%M%S'),
             mode))
         content_disposition = 'attachment; filename=%s.csv' % basename
 
@@ -1784,7 +1784,7 @@ def update_submission_version(submission):
     services.submission_versions.create(
         submission_id=submission.id,
         data=version_data,
-        timestamp=datetime.utcnow(),
+        timestamp=autils.naive_current_timestamp(),
         channel=channel,
         identity=identity,
         deployment_id=submission.deployment_id

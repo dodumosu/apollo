@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import calendar
-from datetime import datetime, timedelta
+from datetime import timedelta
 from itertools import chain
 
 from dateutil.parser import parse
@@ -21,6 +21,7 @@ from apollo.messaging.filters import MessageFilterForm, MessageFilterSet
 from apollo.models import Event, Form, Message, Submission
 from apollo.services import events, messages
 from apollo.settings import TIMEZONE
+from apollo.utils import naive_current_timestamp
 
 
 APP_TZ = gettz(TIMEZONE)
@@ -55,7 +56,7 @@ def message_list():
         dataset = messages.export_list(queryset_filter.qs)
         basename = slugify('%s messages %s' % (
             g.event.name.lower(),
-            datetime.utcnow().strftime('%Y %m %d %H%M%S')))
+            naive_current_timestamp().strftime('%Y %m %d %H%M%S')))
         content_disposition = 'attachment; filename=%s.csv' % basename
         return Response(
             stream_with_context(dataset),

@@ -2,7 +2,7 @@
 import codecs
 import os
 import warnings
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 from PIL import Image
@@ -29,8 +29,12 @@ def parse_env(env_path):
             yield k, v
 
 
-def current_timestamp():
-    return utc.localize(datetime.utcnow())
+def current_timestamp() -> datetime:
+    return datetime.now(tz=timezone.utc)
+
+
+def naive_current_timestamp() -> datetime:
+    return current_timestamp().replace(tzinfo=None)
 
 
 def validate_uuid(uuid_string):

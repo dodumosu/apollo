@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
 import logging
 import os
 import re
@@ -147,7 +146,7 @@ def participant_list(participant_set_id=0, view=None):
         dataset = services.participants.export_list(queryset_filter.qs)
         basename = slugify('%s participants %s' % (
             participant_set.name.lower(),
-            datetime.utcnow().strftime('%Y %m %d %H%M%S')))
+            utils.current_timestamp().strftime('%Y %m %d %H%M%S')))
         content_disposition = 'attachment; filename=%s.csv' % basename
         return Response(
             stream_with_context(dataset),

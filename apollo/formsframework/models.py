@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
 import hashlib
 import logging
 from operator import itemgetter
@@ -17,6 +16,7 @@ from slugify import slugify
 
 from apollo.core import db
 from apollo.dal.models import Resource
+from apollo.utils import current_timestamp
 
 NSMAP = {
     None: 'http://www.w3.org/2002/xforms',
@@ -53,7 +53,7 @@ lt_constraint_regex = re.compile(r'(?:.*\.\s*\<={0,1}\s*)(\d+)')
 
 
 def _make_version_identifer():
-    return datetime.utcnow().strftime('%Y%m%d%H%M%S%f')
+    return current_timestamp().strftime('%Y%m%d%H%M%S%f')
 
 
 events_forms = db.Table(

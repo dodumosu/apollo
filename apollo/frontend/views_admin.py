@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
 from io import BytesIO
 from urllib.parse import urlencode
 from zipfile import ZipFile, ZIP_DEFLATED
@@ -43,7 +42,7 @@ from apollo.formsframework.views_forms import (
     forms_list, export_form, checklist_init, form_builder, new_form, edit_form,
     quality_controls, quality_control_delete, quality_control_edit,
     sort_quality_controls, import_form_schema, survey_init)
-from apollo.utils import resize_image
+from apollo.utils import current_timestamp, resize_image
 
 
 app_time_zone = pytz.timezone(settings.TIMEZONE)
@@ -457,7 +456,7 @@ class EventAdminView(HiddenObjectMixin, BaseAdminView):
 
         fp.seek(0)
         fname = slugify(
-            f'event archive {event.name.lower()} {datetime.utcnow().strftime("%Y %m %d %H%M%S")}')  # noqa
+            f'event archive {event.name.lower()} {current_timestamp().strftime("%Y %m %d %H%M%S")}')  # noqa
 
         return send_file(
             fp,

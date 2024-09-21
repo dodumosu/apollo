@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
 from io import BytesIO
 import json
 import os
@@ -85,7 +84,7 @@ def locations_list(view, location_set_id):
         dataset = services.locations.export_list(queryset_filter.qs)
         basename = slugify('%s locations %s' % (
             g.event.name.lower(),
-            datetime.utcnow().strftime('%Y %m %d %H%M%S')))
+            utils.current_timestamp().strftime('%Y %m %d %H%M%S')))
         content_disposition = 'attachment; filename=%s.csv' % basename
         return Response(
             stream_with_context(dataset),

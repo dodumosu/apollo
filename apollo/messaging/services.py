@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import csv
-from datetime import datetime
+from datetime import datetime, timezone
 from io import StringIO
 
 from flask_babelex import gettext as _
 
-from apollo import constants
+from apollo import constants, utils
 from apollo.dal.service import Service
 from apollo.messaging.models import Message
 
@@ -17,11 +17,13 @@ class MessageService(Service):
                     timestamp=None, message_type='SMS'):
         if timestamp:
             try:
-                msg_time = datetime.utcfromtimestamp(timestamp)
+                msg_time = datetime.fromtimestamp(
+                    timestamp, tz=timezone.utc
+                ).replace(tzinfo=None)
             except ValueError:
-                msg_time = datetime.utcnow()
+                msg_time = utils.naive_current_timestamp()
         else:
-            msg_time = datetime.utcnow()
+            msg_time = utils.naive_current_timestamp()
 
         return self.create(
             direction=direction, recipient=recipient, sender=sender, text=text,

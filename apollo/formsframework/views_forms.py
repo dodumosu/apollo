@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import json
-from datetime import datetime
 from io import BytesIO
 
 from flask import (
@@ -21,7 +20,7 @@ from apollo.frontend.forms import (
     make_checklist_init_form, make_survey_init_form)
 from apollo.submissions.tasks import init_submissions, init_survey_submissions
 from apollo.users.models import UserUpload
-from apollo.utils import generate_identifier, strip_bom_header
+from apollo.utils import current_timestamp, generate_identifier, strip_bom_header
 
 bp = Blueprint('forms', __name__, template_folder='templates',
                static_folder='static')
@@ -488,9 +487,9 @@ def export_form(id):
     workbook = utils.export_form(form)
     workbook.save(memory_file)
     memory_file.seek(0)
-    current_timestamp = datetime.utcnow()
+    now = current_timestamp()
     filename = slugify(
-        f'{form.name}-{current_timestamp:%Y %m %d %H%M%S}') + '.xls'
+        f'{form.name}-{now:%Y %m %d %H%M%S}') + '.xls'
 
     return send_file(
         memory_file, attachment_filename=filename,

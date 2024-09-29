@@ -233,9 +233,6 @@
                       </div>
                       <image-field v-else-if="field.type === 'image'" :field="field" :submission="submission" @update-image="updateImage" @remove-image="removeImage(field.tag)" :disabled="locked"></image-field>
                     </div>
-                    <div class="mb-3">
-                      <button class="btn btn-outline-dark" type="button" @click="clearData(group)" >{{ _('Clear section data') }}</button>
-                    </div>
                   </div>
                 </div>
               </fieldset>

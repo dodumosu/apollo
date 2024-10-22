@@ -297,9 +297,9 @@
   <script src="{{ url_for('pwa.static', filename='vendor/dexie/dexie.min.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='vendor/fast-copy/fast-copy.min.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='vendor/image-blob-reduce/image-blob-reduce.min.js') }}"></script>
+  <script src="{{ url_for('pwa.static', filename='vendor/js-cookie/js.cookie.min.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='vendor/luxon/luxon.min.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='vendor/notiflix/notiflix-2.7.0.min.js') }}"></script>
-  <script src="{{ url_for('pwa.static', filename='vendor/tiny-cookie/tiny-cookie.min.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='vendor/tippy.js/tippy.umd.min.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='vendor/vue/vue.min.js') }}"></script>
   <script src="{{ url_for('pwa.static', filename='js/app.js') }}"></script>
@@ -1239,7 +1239,8 @@
           ));
         },
         loggedOut() {
-          client.logout(Cookie.get('csrf_access_token'));
+          client.logout(Cookies.get('csrf_access_token'));
+          db.participants.where({participant_id: this.participant.participant_id}).delete();
           this.participant = null;
           this.currentForm = null;
           this.currentSubmission = null;
@@ -1346,7 +1347,7 @@
           formData.append('submission', JSON.stringify(subCopy));
 
           try {
-            let result = await client.submit(formData, Cookie.get('csrf_access_token'));
+            let result = await client.submit(formData, Cookies.get('csrf_access_token'));
             let data = await result.result;
             if (result.status === 401) {
               Notiflix.Report.Warning(
